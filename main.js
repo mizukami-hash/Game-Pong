@@ -9,7 +9,7 @@
   const gameHeight = gameBoard.height;
   const boardBackground = "forestgreen";
   const paddle1Color = "lightblue";
-  const paddle2Color = "red";
+  // const paddle2Color = "red";
   const paddleBorder = "black";
   const ballColor = "yellow";
   const ballBorderColor = "black";
@@ -17,26 +17,28 @@
   const paddleSpeed = 50;
   let intervalID;
   let ballSpeed = 1;
+  // ボールの位置指定
   let ballX = gameWidth / 2;
   let ballY = gameHeight / 2;
   let ballXDirection = 0;
   let ballYDirection = 0;
   let player1Score = 0;
-  let player2Score = 0;
+  // let player2Score = 0;
 
   let paddle1 = {
-    width: 25,
-    height: 100,
-    x: 0,
-    y: 0,
+    width: 100,
+    height: 25,
+    x: 200,
+    y: gameHeight - 25,
   };
-  let paddle2 = {
-    width: 25,
-    height: 100,
-    x: gameWidth - 25,
-    y: gameHeight - 100,
-  };
+  // let paddle2 = {
+  //   width: 25,
+  //   height: 100,
+  //   x: gameWidth - 25,
+  //   y: gameHeight - 100,
+  // };
 
+  // いずれかのキーが押されているとき
   window.addEventListener("keydown", changeDirection);
   resetBtn.addEventListener("click", resetGame);
 
@@ -66,37 +68,43 @@
     ctx.strokeStyle = paddleBorder; /*black*/
     // 塗りつぶしの色
     ctx.fillStyle = paddle1Color; /*lightblue*/
-    // fillStyleに基づいて描画
+    // 位置とサイズ
     ctx.fillRect(paddle1.x, paddle1.y, paddle1.width, paddle1.height);
     ctx.strokeRect(paddle1.x, paddle1.y, paddle1.width, paddle1.height);
 
-    ctx.fillStyle = paddle2Color; /*lightblue*/
+    // ctx.fillStyle = paddle2Color; /*lightblue*/
     // fillStyleに基づいて描画
-    ctx.fillRect(paddle2.x, paddle2.y, paddle2.width, paddle2.height);
-    ctx.strokeRect(paddle2.x, paddle2.y, paddle2.width, paddle2.height);
+    // ctx.fillRect(paddle2.x, paddle2.y, paddle2.width, paddle2.height);
+    // ctx.strokeRect(paddle2.x, paddle2.y, paddle2.width, paddle2.height);
   }
+
   function createBall() {
     ballSpeed = 1;
-    // Math.round四捨五入
+    // Math.round=四捨五入 0か1のどちらかがランダムで返ってくる
     if (Math.round(Math.random()) === 1) {
       ballXDirection = 1;
     } else {
       ballXDirection = -1;
     }
-
+    // Y軸もランダムで上か下にボールが動くように指示
     if (Math.round(Math.random()) === 1) {
       ballYDirection = 1;
     } else {
       ballYDirection = -1;
     }
+    // ボールの位置は中央を指定
     ballX = gameWidth / 2;
     ballY = gameHeight / 2;
+    // 描画
     drawBall(ballX, ballY);
   }
   function moveBall() {
+    // ボール（X、Y軸）の位置はballSpeed*進行方向（上下左右ランダム）
+    // nextTick()で0.01秒ごとに繰り返し処理している
     ballX += ballSpeed * ballXDirection;
     ballY += ballSpeed * ballYDirection;
   }
+
   function drawBall(ballX, ballY) {
     ctx.fillStyle = ballColor;
     ctx.strokeStyle = ballBorderColor;
@@ -107,94 +115,99 @@
     ctx.fill();
   }
   function checkCollision() {
+    // Y軸上辺
     if (ballY <= 0 + ballRadius /*半径（12.5）*/) {
       ballYDirection *= -1;
     }
-    if (ballY >= gameHeight - ballRadius /*半径（12.5）*/) {
-      ballYDirection *= -1;
+
+    // X軸左辺
+    if (ballX <= 0 + ballRadius /*半径（12.5）*/) {
+      ballXDirection *= -1;
     }
-    if (ballX <= 0) {
-      player2Score += 1;
+    // X軸右辺
+    if (ballX >= gameWidth - ballRadius /*半径（12.5）*/) {
+      ballXDirection *= -1;
+    }
+    // ボールが下に落ちた時
+    if (ballY >= gameHeight) {
+      player1Score -= 1;
       updateScore();
       createBall();
       return;
     }
-    if (ballX >= gameWidth) {
-      player1Score += 1;
-      updateScore();
-      createBall();
-      return;
-    }
-    if (ballX <= paddle1.x + paddle1.width + ballRadius) {
-      if (ballY > paddle1.y && ballY < paddle1.y + paddle1.height) {
-        ballX = paddle1.x + paddle1.width + ballRadius;
-        ballXDirection *= -1;
-        ballSpeed += 1;
-      }
-    }
-    if (ballX >= paddle2.x - ballRadius) {
-      if (ballY > paddle2.y && ballY < paddle2.y + paddle2.height) {
-        ballX = paddle2.x - ballRadius;
-        ballXDirection *= -1;
-        ballSpeed += 1;
+    if (
+      ballY /*ボールのY軸移動*/ >=
+      paddle1.y /*ラケットサイズ25*/ -
+        ballRadius /*半径12.5* ==下にめり込んだ時*/
+    ) {
+      if (
+        ballX /*ボールのX軸移動*/ >
+          paddle1.x /*paddleの左辺から右に大きい　かつ*/ &&
+        ballX <
+          paddle1.x +
+            paddle1.width /*横幅の100（＝右辺）より小さい=当たっている状態*/
+      ) {
+        // ballY =paddle1.y + ballRadius;/*ballのx座標は初期値＋棒の横幅＋半径*/
+        ballYDirection *= -1; /*進行方向を変更*/
+        ballSpeed += 0.5;
       }
     }
   }
+
   function changeDirection(event) {
     // キーコードの取得
     const keyPressed = event.keyCode;
     console.log(keyPressed);
-    const paddle1Up = 87;
-    const paddle1Down = 83;
-    const paddle2Up = 38;
-    const paddle2Down = 40;
+    const paddle1Right = 39;
+    const paddle1Left = 37;
+    // const paddle2Up = 38;
+    // const paddle2Down = 40;
 
     switch (keyPressed) {
-      case paddle1Up:
-        if (paddle1.y > 0) {
-          paddle1.y -= paddleSpeed;
+      case paddle1Left:
+        if (paddle1.x > 0) {
+          paddle1.x -= paddleSpeed;
         }
         break;
 
-      case paddle1Down:
-        if (paddle1.y < gameHeight - paddle1.height) {
-          paddle1.y += paddleSpeed; /*50*/
+      case paddle1Right:
+        if (paddle1.x < gameWidth - paddle1.width) {
+          paddle1.x += paddleSpeed; /*50*/
         }
         break;
 
-      case paddle2Up:
-        if (paddle2.y > 0) {
-          paddle2.y -= paddleSpeed;
-        }
-        break;
+      //   case paddle2Up:
+      //     if (paddle2.y > 0) {
+      //       paddle2.y -= paddleSpeed;
+      //     }
+      //     break;
 
-      case paddle2Down:
-        if (paddle2.y < gameHeight - paddle2.height) {
-          paddle2.y += paddleSpeed;
-        }
-        break;
+      //   case paddle2Down:
+      //     if (paddle2.y < gameHeight - paddle2.height) {
+      //       paddle2.y += paddleSpeed;
+      //     }
+      //     break;
     }
   }
   function updateScore() {
-    scoreText.textContent = `${player1Score}:${player2Score}`;
+    scoreText.textContent = player1Score;
   }
   function resetGame() {
     console.log("reset");
     player1Score = 0;
-    player2Score = 0;
 
     paddle1 = {
-      width: 25,
-      height: 100,
-      x: 0,
-      y: 0,
+      width: 100,
+      height: 25,
+      x: 200,
+      y: gameHeight - 25,
     };
-    paddle2 = {
-      width: 25,
-      height: 100,
-      x: gameWidth - 25,
-      y: gameHeight - 100,
-    };
+    // paddle2 = {
+    //   width: 25,
+    //   height: 100,
+    //   x: gameWidth - 25,
+    //   y: gameHeight - 100,
+    // };
     ballSpeed = 1;
     ballX = 0;
     ballY = 0;
@@ -202,6 +215,6 @@
     ballYDirection = 0;
     updateScore();
     clearInterval(intervalID);
-    // gameStart();
+    gameStart();
   }
 }
