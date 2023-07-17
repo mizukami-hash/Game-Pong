@@ -5,18 +5,20 @@
   const ctx = gameBoard.getContext("2d");
   const scoreText = document.querySelector("#scoreText");
   const resetBtn = document.querySelector("#resetBtn");
+  const countFailed = document.querySelector("#failed");
+
   const gameWidth = gameBoard.width;
   const gameHeight = gameBoard.height;
-  const boardBackground = "forestgreen";
-  const paddle1Color = "lightblue";
+  const boardBackground = "#64DB8F";
+  const paddle1Color = "#DB7307";
   // const paddle2Color = "red";
-  const paddleBorder = "black";
-  const ballColor = "yellow";
-  const ballBorderColor = "black";
+  const paddleBorder = "#DB7303";
+  const ballColor = "#F9F790";
+  const ballBorderColor = "#F0810F";
   const ballRadius = 12.5;
   const paddleSpeed = 50;
   let intervalID;
-  let ballSpeed = 1;
+  let ballSpeed = 1.3;
   // ボールの位置指定
   let ballX = gameWidth / 2;
   let ballY = gameHeight / 2;
@@ -24,24 +26,19 @@
   let ballYDirection = 0;
   let player1Score = 0;
   // let player2Score = 0;
+  let failuresNum = 0;
 
   let paddle1 = {
     width: 100,
-    height: 25,
+    height: 5,
     x: 200,
     y: gameHeight - 25,
   };
-  // let paddle2 = {
-  //   width: 25,
-  //   height: 100,
-  //   x: gameWidth - 25,
-  //   y: gameHeight - 100,
-  // };
 
   // いずれかのキーが押されているとき
   window.addEventListener("keydown", changeDirection);
-  resetBtn.addEventListener("click", resetGame);
 
+  resetBtn.addEventListener("click", resetGame);
   gameStart();
 
   function gameStart() {
@@ -56,6 +53,9 @@
       drawBall(ballX, ballY);
       checkCollision();
       nextTick();
+      if (failuresNum > 4) {
+        drawGameOver();
+      }
     }, 10);
   }
   function clearBoard() {
@@ -71,11 +71,6 @@
     // 位置とサイズ
     ctx.fillRect(paddle1.x, paddle1.y, paddle1.width, paddle1.height);
     ctx.strokeRect(paddle1.x, paddle1.y, paddle1.width, paddle1.height);
-
-    // ctx.fillStyle = paddle2Color; /*lightblue*/
-    // fillStyleに基づいて描画
-    // ctx.fillRect(paddle2.x, paddle2.y, paddle2.width, paddle2.height);
-    // ctx.strokeRect(paddle2.x, paddle2.y, paddle2.width, paddle2.height);
   }
 
   function createBall() {
@@ -119,7 +114,6 @@
     if (ballY <= 0 + ballRadius /*半径（12.5）*/) {
       ballYDirection *= -1;
     }
-
     // X軸左辺
     if (ballX <= 0 + ballRadius /*半径（12.5）*/) {
       ballXDirection *= -1;
@@ -130,11 +124,15 @@
     }
     // ボールが下に落ちた時
     if (ballY >= gameHeight) {
-      player1Score -= 1;
+      failuresNum += 1;
       updateScore();
       createBall();
       return;
     }
+    if (paddle1.width === 70) {
+      ballSpeed = 2;
+    }
+
     if (
       ballY /*ボールのY軸移動*/ >=
       paddle1.y /*ラケットサイズ25*/ -
@@ -149,15 +147,15 @@
       ) {
         // ballY =paddle1.y + ballRadius;/*ballのx座標は初期値＋棒の横幅＋半径*/
         ballYDirection *= -1; /*進行方向を変更*/
-        ballSpeed += 0.5;
+        ballSpeed += 0.1;
+        player1Score += 1;
+        updateScore();
       }
     }
   }
-
   function changeDirection(event) {
     // キーコードの取得
     const keyPressed = event.keyCode;
-    console.log(keyPressed);
     const paddle1Right = 39;
     const paddle1Left = 37;
     // const paddle2Up = 38;
@@ -175,39 +173,39 @@
           paddle1.x += paddleSpeed; /*50*/
         }
         break;
-
-      //   case paddle2Up:
-      //     if (paddle2.y > 0) {
-      //       paddle2.y -= paddleSpeed;
-      //     }
-      //     break;
-
-      //   case paddle2Down:
-      //     if (paddle2.y < gameHeight - paddle2.height) {
-      //       paddle2.y += paddleSpeed;
-      //     }
-      //     break;
     }
   }
   function updateScore() {
     scoreText.textContent = player1Score;
+    countFailed.textContent = `failed: ${failuresNum}/5`;
   }
+
+  // ゲームオーバー  }
+  function drawGameOver() {
+    // clearInterval(intervalID);
+    intervalID = null;
+    ballSpeed = 0;
+    ctx.clearRect(0, 0, gameWidth, gameHeight);
+
+    ctx.font = '28px "Arial Black';
+    ctx.fillStyle = "tomato";
+    ctx.fillText("GAME OVER", 150, 260);
+    ctx.fillText("Please reload to start again", 40, 290);
+  }
+
+  // ================
+
   function resetGame() {
     console.log("reset");
     player1Score = 0;
 
     paddle1 = {
       width: 100,
-      height: 25,
+      height: 2,
       x: 200,
       y: gameHeight - 25,
     };
-    // paddle2 = {
-    //   width: 25,
-    //   height: 100,
-    //   x: gameWidth - 25,
-    //   y: gameHeight - 100,
-    // };
+
     ballSpeed = 1;
     ballX = 0;
     ballY = 0;
@@ -217,4 +215,57 @@
     clearInterval(intervalID);
     gameStart();
   }
+  // 一時停止・再開機能============================================
+  document.addEventListener("keydown", gameStop, false);
+  document.addEventListener("keydown", gameRestart);
+  // スクロール防止
+  document.addEventListener("keypress", (e) => {
+    if (e.key == " ") event.preventDefault();
+  });
+
+  // スペースキーで一時停止
+  function gameStop(e) {
+    if (e.keyCode === 32) {
+      clearInterval(intervalID);
+      intervalID = null;
+      // 一時停止画面を表示
+    }
+  }
+  // エンターキーで再開
+  function gameRestart(e) {
+    if (e.keyCode === 13) {
+      if (!intervalID) {
+        intervalID = setTimeout(() => {
+          clearBoard();
+          drawPaddles();
+          moveBall();
+          drawBall(ballX, ballY);
+          checkCollision();
+          nextTick();
+          if (paddle1.width === 70) {
+            ballSpeed = 2;
+          }
+        }, 10);
+      }
+    }
+  }
+  // ==========================================================
+  // レベル変更機能=============================================
+  const easy = document.querySelector("#levelEasy");
+  const hard = document.querySelector("#levelHard");
+
+  easy.addEventListener("click", () => {
+    paddle1.width = 150;
+    easy.classList.add("easy");
+    hard.classList.remove("hard");
+  });
+  hard.addEventListener("click", () => {
+    paddle1.width = 70;
+    ballSpeed = 2;
+
+    hard.classList.add("hard");
+    easy.classList.remove("easy");
+  });
+  // ==========================================================
+  // ボールが横に当たった時の判定
 }

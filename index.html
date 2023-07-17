@@ -7,14 +7,24 @@
     <!-- 参考：https://www.youtube.com/watch?v=AiFqApeurqI -->
     <title>Pong</title>
   </head>
-  <body>
+
     <div id="gameContainer">
+      <div id="drawArea">
       <canvas id="gameBoard" width="500" height="500"></canvas>
+      <div id="start">
+        <!-- <button id ="startBtn">Start</button> -->
+        <p><img src="icons/right-arrow-key.png" alt="right">Right</p>
+        <p><img src="icons/left-arrow-key.png" alt="left">Left</p>
+        <p><img src="icons/space-key.png" alt="space-key">Pause</p>
+        <p><img src="icons/enter-key.png" alt="enter-key">Restart</p>
+      </div>
+      </div>
       <div id="scoreText">0</div>
+      <div id="failed">failed :0/5</div>
+
+      <button id="levelEasy">Easy</button>
+      <button id="levelHard">Hard</button>
       <button id="resetBtn">Reset</button>
-      <button id="easy">Easy</button>
-      <button id="normal">Normal</button>
-      <button id="hard">Heard</button>
     </div>
 
     <script src="main.js"></script>
