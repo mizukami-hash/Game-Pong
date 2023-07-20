@@ -134,20 +134,21 @@
     }
 
     if (
-      ballY /*ボールのY軸移動*/ >=
-      paddle1.y /*ラケットサイズ25*/ -
+      ballY /*ボールのY軸移動*/ >
+      paddle1.y /*ラケット縦サイズ25*/ -
         ballRadius /*半径12.5* ==下にめり込んだ時*/
     ) {
       if (
         ballX /*ボールのX軸移動*/ >
-          paddle1.x /*paddleの左辺から右に大きい　かつ*/ &&
+          paddle1.x /*paddleの左辺から右に大きい かつ*/ &&
         ballX <
           paddle1.x +
             paddle1.width /*横幅の100（＝右辺）より小さい=当たっている状態*/
       ) {
-        // ballY =paddle1.y + ballRadius;/*ballのx座標は初期値＋棒の横幅＋半径*/
+        ballY = paddle1.y - ballRadius;
+        /*ballのx座標は初期値＋棒の横幅＋半径*/
         ballYDirection *= -1; /*進行方向を変更*/
-        ballSpeed += 0.1;
+        ballSpeed += 0.3;
         player1Score += 1;
         updateScore();
       }
