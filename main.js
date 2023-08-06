@@ -11,7 +11,6 @@
   const gameHeight = gameBoard.height;
   const boardBackground = "#64DB8F";
   const paddle1Color = "#DB7307";
-  // const paddle2Color = "red";
   const paddleBorder = "#DB7303";
   const ballColor = "#F9F790";
   const ballBorderColor = "#F0810F";
@@ -25,7 +24,6 @@
   let ballXDirection = 0;
   let ballYDirection = 0;
   let player1Score = 0;
-  // let player2Score = 0;
   let failuresNum = 0;
 
   let paddle1 = {
@@ -133,21 +131,11 @@
       ballSpeed = 2;
     }
 
-    if (
-      ballY /*ボールのY軸移動*/ >
-      paddle1.y /*ラケット縦サイズ25*/ -
-        ballRadius /*半径12.5* ==下にめり込んだ時*/
-    ) {
-      if (
-        ballX /*ボールのX軸移動*/ >
-          paddle1.x /*paddleの左辺から右に大きい かつ*/ &&
-        ballX <
-          paddle1.x +
-            paddle1.width /*横幅の100（＝右辺）より小さい=当たっている状態*/
-      ) {
+    if (ballY > paddle1.y - ballRadius) {
+      if (ballX > paddle1.x && ballX < paddle1.x + paddle1.width) {
         ballY = paddle1.y - ballRadius;
-        /*ballのx座標は初期値＋棒の横幅＋半径*/
-        ballYDirection *= -1; /*進行方向を変更*/
+
+        ballYDirection *= -1;
         ballSpeed += 0.3;
         player1Score += 1;
         updateScore();
@@ -181,9 +169,8 @@
     countFailed.textContent = `failed: ${failuresNum}/5`;
   }
 
-  // ゲームオーバー  }
+  // ゲームオーバー
   function drawGameOver() {
-    // clearInterval(intervalID);
     intervalID = null;
     ballSpeed = 0;
     ctx.clearRect(0, 0, gameWidth, gameHeight);
@@ -193,8 +180,6 @@
     ctx.fillText("GAME OVER", 150, 260);
     ctx.fillText("Please reload to start again", 40, 290);
   }
-
-  // ================
 
   function resetGame() {
     console.log("reset");
@@ -229,7 +214,6 @@
     if (e.keyCode === 32) {
       clearInterval(intervalID);
       intervalID = null;
-      // 一時停止画面を表示
     }
   }
   // エンターキーで再開
@@ -268,5 +252,4 @@
     easy.classList.remove("easy");
   });
   // ==========================================================
-  // ボールが横に当たった時の判定
 }
